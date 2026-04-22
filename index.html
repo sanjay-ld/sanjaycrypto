@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanjay Crypto Currency Bot</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #151820;
+    --surface2: #1c2030;
+    --border: #2a2f3e;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --accent: #4f8ef7;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --purple: #a855f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 100; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #f59e0b, #ef4444); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .brand-text h1 { font-size: 16px; font-weight: 700; color: var(--text); }
+  .brand-text p { font-size: 11px; color: var(--muted); }
+  .header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .live-badge { display: flex; align-items: center; gap: 6px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); border-radius: 999px; padding: 4px 10px; font-size: 12px; color: var(--green); }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .clock { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .refresh-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 12px; cursor: pointer; }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* MARKET OVERVIEW */
+  .market-bar { display: flex; gap: 10px; padding: 12px 20px; overflow-x: auto; border-bottom: 1px solid var(--border); background: var(--surface); scrollbar-width: none; }
+  .market-bar::-webkit-scrollbar { display: none; }
+  .mstat { min-width: 130px; }
+  .mstat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .mstat-val { font-size: 14px; font-weight: 600; }
+
+  /* CONTROLS */
+  .controls { padding: 14px 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px 8px 34px; color: var(--text); font-size: 13px; outline: none; }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; }
+  .sort-select { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; cursor: pointer; }
+  .filter-btn { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.1); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; padding: 0 20px 20px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th { padding: 10px 12px; text-align: left; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; }
+  thead th:hover { color: var(--text); }
+  tbody tr { border-bottom: 1px solid rgba(42,47,62,0.5); transition: background 0.1s; }
+  tbody tr:hover { background: var(--surface2); }
+  td { padding: 10px 12px; font-size: 13px; vertical-align: middle; }
+  .rank { color: var(--muted); font-size: 12px; width: 40px; }
+  .coin-cell { display: flex; align-items: center; gap: 10px; }
+  .coin-icon { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: var(--surface2); }
+  .coin-icon-placeholder { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent); }
+  .coin-name { font-weight: 600; font-size: 13px; }
+  .coin-symbol { font-size: 11px; color: var(--muted); }
+  .price { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .change { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .muted { color: var(--muted); }
+  .signal-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
+  .sig-BUY { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+  .sig-SELL { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+  .sig-HOLD { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+  .conf-bar { height: 4px; border-radius: 2px; background: var(--border); margin-top: 4px; width: 60px; }
+  .conf-fill { height: 100%; border-radius: 2px; }
+  .sparkline { width: 80px; height: 30px; }
+
+  /* DETAIL PANEL */
+  .detail-panel { display: none; position: fixed; right: 0; top: 0; height: 100vh; width: 340px; background: var(--surface); border-left: 1px solid var(--border); z-index: 200; overflow-y: auto; padding: 20px; }
+  .detail-panel.open { display: block; }
+  .dp-close { float: right; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+  .dp-coin-header { display: flex; align-items: center; gap: 12px; margin: 12px 0 20px; }
+  .dp-icon { width: 48px; height: 48px; border-radius: 50%; }
+  .dp-name { font-size: 18px; font-weight: 700; }
+  .dp-sym { font-size: 13px; color: var(--muted); }
+  .dp-price { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .dp-section { margin-bottom: 18px; }
+  .dp-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 10px; }
+  .dp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dp-stat { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+  .dp-stat-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .dp-stat-val { font-size: 14px; font-weight: 600; }
+  .big-signal { text-align: center; padding: 20px; border-radius: 12px; margin-bottom: 18px; }
+  .big-sig-BUY { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); }
+  .big-sig-SELL { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
+  .big-sig-HOLD { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); }
+  .big-sig-text { font-size: 36px; font-weight: 800; margin: 6px 0; }
+  .big-sig-BUY .big-sig-text { color: var(--green); }
+  .big-sig-SELL .big-sig-text { color: var(--red); }
+  .big-sig-HOLD .big-sig-text { color: var(--yellow); }
+  .ind-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .ind-row:last-child { border-bottom: none; }
+  .reason-tag { display: inline-block; background: var(--surface2); border-radius: 6px; padding: 3px 8px; font-size: 11px; color: var(--muted); margin: 3px 2px; }
+  .invest-calc { background: var(--surface2); border-radius: 10px; padding: 14px; }
+  .invest-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+
+  /* FOOTER */
+  .footer { padding: 16px 20px; border-top: 1px solid var(--border); text-align: center; }
+  .footer p { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+  /* LOADING */
+  .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50vh; gap: 16px; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--muted); font-size: 14px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .detail-panel { width: 100%; }
+    .table-wrap { padding: 0 10px 20px; }
+    .controls { padding: 10px; }
+    .market-bar { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="brand">
+    <div class="brand-icon">₿</div>
+    <div class="brand-text">
+      <h1>Sanjay Crypto Currency Bot</h1>
+      <p>Live market tracker &amp; signal analyzer</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+    <div class="clock" id="clock">--:--:-- --</div>
+    <button class="refresh-btn" onclick="fetchCoins()">↻ Refresh</button>
+  </div>
+</div>
+
+<!-- MARKET OVERVIEW BAR -->
+<div class="market-bar" id="marketBar">
+  <div class="mstat"><div class="mstat-label">Total Market Cap</div><div class="mstat-val" id="totalMcap">Loading...</div></div>
+  <div class="mstat"><div class="mstat-label">24h Volume</div><div class="mstat-val" id="totalVol">—</div></div>
+  <div class="mstat"><div class="mstat-label">BTC Dominance</div><div class="mstat-val" id="btcDom">—</div></div>
+  <div class="mstat"><div class="mstat-label">Active Coins</div><div class="mstat-val" id="activeCoins">—</div></div>
+  <div class="mstat"><div class="mstat-label">Fear &amp; Greed</div><div class="mstat-val" id="fgIndex">—</div></div>
+  <div class="mstat"><div class="mstat-label">BTC Price</div><div class="mstat-val" id="btcPrice">—</div></div>
+  <div class="mstat"><div class="mstat-label">ETH Price</div><div class="mstat-val" id="ethPrice">—</div></div>
+  <div class="mstat"><div class="mstat-label">Last Update</div><div class="mstat-val" id="lastUpdate">—</div></div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search coin name or symbol..." oninput="filterCoins()">
+  </div>
+  <select class="sort-select" id="sortSelect" onchange="sortCoins()">
+    <option value="rank">Sort: Rank</option>
+    <option value="price_desc">Price: High → Low</option>
+    <option value="price_asc">Price: Low → High</option>
+    <option value="change_desc">Gainers First</option>
+    <option value="change_asc">Losers First</option>
+    <option value="mcap_desc">Market Cap ↓</option>
+  </select>
+  <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+  <button class="filter-btn" onclick="setFilter('buy', this)">🟢 BUY</button>
+  <button class="filter-btn" onclick="setFilter('sell', this)">🔴 SELL</button>
+  <button class="filter-btn" onclick="setFilter('hold', this)">🟡 HOLD</button>
+  <button class="filter-btn" onclick="setFilter('gainers', this)">🚀 Gainers</button>
+  <button class="filter-btn" onclick="setFilter('losers', this)">📉 Losers</button>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <div id="tableContainer"><div class="loading-screen"><div class="spinner"></div><div class="loading-text">Fetching 250 cryptocurrencies...</div></div></div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <button class="dp-close" onclick="closeDetail()">✕</button>
+  <div id="detailContent"></div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>⚠️ Sanjay Crypto Bot is for educational purposes only. Signals are based on technical indicators and do NOT guarantee profit. Crypto is extremely volatile — never invest money you cannot afford to lose. This is not financial advice.</p>
+  <p style="margin-top:6px;color:#3d4455;">API: CoinGecko (free) · CMC Key: 8d2b5fd9... (use on backend server to avoid CORS)</p>
+</div>
+
+<script>
+// ===== STATE =====
+let allCoins = [];
+let filteredCoins = [];
+let currentFilter = 'all';
+let currentSort = 'rank';
+let globalData = {};
+let refreshInterval;
+
+// ===== CLOCK =====
+function updateClock() {
+  var now = new Date();
+  var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  document.getElementById('clock').textContent =
+    String(h).padStart(2,'0') + ':' +
+    String(m).padStart(2,'0') + ':' +
+    String(s).padStart(2,'0') + ' ' + ampm + '  ' +
+    now.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== FORMAT HELPERS =====
+function fmtPrice(n) {
+  if (n === null || n === undefined) return 'N/A';
+  if (n >= 1000) return '$' + Number(n.toFixed(2)).toLocaleString();
+  if (n >= 1) return '$' + n.toFixed(4);
+  if (n >= 0.01) return '$' + n.toFixed(6);
+  return '$' + n.toFixed(8);
+}
+function fmtLarge(n) {
+  if (!n) return 'N/A';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  return '$' + n.toFixed(0);
+}
+function fmtPct(n) {
+  if (n === null || n === undefined) return 'N/A';
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+}
+function clsChange(n) { return n >= 0 ? 'pos' : 'neg'; }
+
+// ===== TECHNICAL ANALYSIS =====
+function calcRSI(prices) {
+  if (!prices || prices.length < 15) return 50;
+  var gains=0, losses=0, period=14;
+  for (var i = prices.length - period; i < prices.length; i++) {
+    var d = prices[i] - prices[i-1];
+    if (d > 0) gains += d; else losses -= d;
+  }
+  var rs = losses === 0 ? 100 : gains/losses;
+  return parseFloat((100 - 100/(1+rs)).toFixed(1));
+}
+function calcSMA(prices, p) {
+  if (!prices || prices.length < p) return prices ? prices[prices.length-1] : 0;
+  return prices.slice(-p).reduce(function(a,b){return a+b;},0)/p;
+}
+function calcEMA(prices, p) {
+  if (!prices || prices.length === 0) return 0;
+  var k=2/(p+1), ema=prices[0];
+  for (var i=1; i<prices.length; i++) ema=prices[i]*k+ema*(1-k);
+  return ema;
+}
+function calcVolatility(prices) {
+  if (!prices || prices.length < 2) return 0;
+  var changes=[];
+  for (var i=1; i<prices.length; i++) changes.push((prices[i]-prices[i-1])/prices[i-1]*100);
+  var mean=changes.reduce(function(a,b){return a+b;},0)/changes.length;
+  var variance=changes.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/changes.length;
+  return parseFloat(Math.sqrt(variance).toFixed(2));
+}
+
+function analyzeSignal(coin) {
+  var prices = coin.sparkline_in_7d && coin.sparkline_in_7d.price ? coin.sparkline_in_7d.price : [];
+  var rsi = calcRSI(prices);
+  var sma7 = calcSMA(prices, Math.min(7, prices.length));
+  var sma25 = calcSMA(prices, Math.min(25, prices.length));
+  var ema12 = calcEMA(prices, 12);
+  var ema26 = calcEMA(prices, 26);
+  var macd = parseFloat((ema12 - ema26).toFixed(6));
+  var vol = calcVolatility(prices.slice(-14));
+  var change24 = coin.price_change_percentage_24h || 0;
+  var change7d = coin.price_change_percentage_7d_in_currency || 0;
+
+  var bull=0, bear=0, reasons=[];
+
+  if (rsi < 35) { bull+=2; reasons.push('RSI oversold'); }
+  else if (rsi > 68) { bear+=2; reasons.push('RSI overbought'); }
+  else if (rsi < 50) { bull+=1; reasons.push('RSI below 50'); }
+  else { bear+=1; reasons.push('RSI above 50'); }
+
+  if (sma7 > sma25) { bull+=2; reasons.push('SMA uptrend'); }
+  else { bear+=2; reasons.push('SMA downtrend'); }
+
+  if (macd > 0) { bull+=1; reasons.push('MACD positive'); }
+  else { bear+=1; reasons.push('MACD negative'); }
+
+  if (change24 > 5) { bull+=1; reasons.push('Strong 24h gain'); }
+  else if (change24 < -5) { bear+=1; reasons.push('Strong 24h loss'); }
+
+  if (change7d > 10) { bull+=1; reasons.push('7d uptrend'); }
+  else if (change7d < -10) { bear+=1; reasons.push('7d downtrend'); }
+
+  if (vol > 6) reasons.push('High volatility!');
+
+  var total = bull + bear;
+  var confidence = total > 0 ? Math.round(Math.max(bull,bear)/total*100) : 50;
+  var signal = bull > bear + 1 ? 'BUY' : bear > bull + 1 ? 'SELL' : 'HOLD';
+  var riskScore = Math.min(100, Math.round(vol*8 + (rsi>70||rsi<30?25:0)));
+
+  return { signal, confidence, rsi, sma7, sma25, macd, vol, riskScore, reasons, bull, bear };
+}
+
+// ===== SPARKLINE SVG =====
+function sparklineSVG(prices, signal) {
+  if (!prices || prices.length < 2) return '<svg width="80" height="30"></svg>';
+  var pts = prices.slice(-20);
+  var min=Math.min.apply(null,pts), max=Math.max.apply(null,pts), range=max-min||1;
+  var color = signal==='BUY'?'#22c55e':signal==='SELL'?'#ef4444':'#f59e0b';
+  var points = pts.map(function(p,i){
+    return (i/(pts.length-1)*78+1)+','+(28-(p-min)/range*26+1);
+  }).join(' ');
+  return '<svg class="sparkline" viewBox="0 0 80 30"><polyline points="'+points+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+}
+
+// ===== RENDER TABLE =====
+function renderTable() {
+  var coins = filteredCoins;
+  if (coins.length === 0) {
+    document.getElementById('tableContainer').innerHTML = '<div class="loading-screen"><div class="loading-text">No coins match your filter.</div></div>';
+    return;
+  }
+
+  var html = '<table><thead><tr>' +
+    '<th>#</th>' +
+    '<th>Coin</th>' +
+    '<th onclick="sortBy(\'price\')">Price ↕</th>' +
+    '<th onclick="sortBy(\'change24\')">24h ↕</th>' +
+    '<th onclick="sortBy(\'change7d\')">7d ↕</th>' +
+    '<th onclick="sortBy(\'mcap\')">Market Cap ↕</th>' +
+    '<th>Volume 24h</th>' +
+    '<th>Signal</th>' +
+    '<th>Confidence</th>' +
+    '<th>7d Chart</th>' +
+    '</tr></thead><tbody>';
+
+  for (var i=0; i<coins.length; i++) {
+    var c = coins[i];
+    var a = c._analysis;
+    var price = c.current_price;
+    var ch24 = c.price_change_percentage_24h;
+    var ch7d = c.price_change_percentage_7d_in_currency;
+    var mcap = c.market_cap;
+    var vol = c.total_volume;
+    var sparkPrices = c.sparkline_in_7d && c.sparkline_in_7d.price ? c.sparkline_in_7d.price : [];
+    var confColor = a.signal==='BUY'?'#22c55e':a.signal==='SELL'?'#ef4444':'#f59e0b';
+
+    html += '<tr onclick="showDetail(\''+c.id+'\')" style="cursor:pointer;">' +
+      '<td class="rank">'+c.market_cap_rank+'</td>' +
+      '<td><div class="coin-cell">' +
+        '<img class="coin-icon" src="'+c.image+'" alt="'+c.name+'" onerror="this.style.display=\'none\'">' +
+        '<div><div class="coin-name">'+c.name+'</div><div class="coin-symbol">'+c.symbol.toUpperCase()+'</div></div>' +
+      '</div></td>' +
+      '<td class="price">'+fmtPrice(price)+'</td>' +
+      '<td class="change '+clsChange(ch24)+'">'+fmtPct(ch24)+'</td>' +
+      '<td class="change '+clsChange(ch7d)+'">'+fmtPct(ch7d)+'</td>' +
+      '<td class="muted">'+fmtLarge(mcap)+'</td>' +
+      '<td class="muted">'+fmtLarge(vol)+'</td>' +
+      '<td><span class="signal-pill sig-'+a.signal+'">'+a.signal+'</span></td>' +
+      '<td><div style="font-size:12px;color:'+confColor+';">'+a.confidence+'%</div><div class="conf-bar"><div class="conf-fill" style="width:'+a.confidence+'%;background:'+confColor+';"></div></div></td>' +
+      '<td>'+sparklineSVG(sparkPrices, a.signal)+'</td>' +
+      '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('tableContainer').innerHTML = html;
+}
+
+// ===== FILTER & SORT =====
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  applyFilter();
+}
+function applyFilter() {
+  var search = document.getElementById('searchInput').value.toLowerCase();
+  filteredCoins = allCoins.filter(function(c) {
+    var matchSearch = !search || c.name.toLowerCase().includes(search) || c.symbol.toLowerCase().includes(search);
+    var matchFilter = true;
+    if (currentFilter === 'buy') matchFilter = c._analysis.signal === 'BUY';
+    else if (currentFilter === 'sell') matchFilter = c._analysis.signal === 'SELL';
+    else if (currentFilter === 'hold') matchFilter = c._analysis.signal === 'HOLD';
+    else if (currentFilter === 'gainers') matchFilter = (c.price_change_percentage_24h || 0) > 0;
+    else if (currentFilter === 'losers') matchFilter = (c.price_change_percentage_24h || 0) < 0;
+    return matchSearch && matchFilter;
+  });
+  applySortToFiltered();
+  renderTable();
+}
+function filterCoins() { applyFilter(); }
+function sortCoins() { currentSort = document.getElementById('sortSelect').value; applyFilter(); }
+function sortBy(field) {
+  if (field==='price') currentSort = currentSort==='price_desc'?'price_asc':'price_desc';
+  else if (field==='change24') currentSort = currentSort==='change_desc'?'change_asc':'change_desc';
+  else if (field==='change7d') currentSort = 'change7d_desc';
+  else if (field==='mcap') currentSort = 'mcap_desc';
+  applySortToFiltered();
+  renderTable();
+}
+function applySortToFiltered() {
+  filteredCoins.sort(function(a,b) {
+    if (currentSort==='price_desc') return (b.current_price||0)-(a.current_price||0);
+    if (currentSort==='price_asc') return (a.current_price||0)-(b.current_price||0);
+    if (currentSort==='change_desc') return (b.price_change_percentage_24h||0)-(a.price_change_percentage_24h||0);
+    if (currentSort==='change_asc') return (a.price_change_percentage_24h||0)-(b.price_change_percentage_24h||0);
+    if (currentSort==='change7d_desc') return (b.price_change_percentage_7d_in_currency||0)-(a.price_change_percentage_7d_in_currency||0);
+    if (currentSort==='mcap_desc') return (b.market_cap||0)-(a.market_cap||0);
+    return (a.market_cap_rank||9999)-(b.market_cap_rank||9999);
+  });
+}
+
+// ===== DETAIL PANEL =====
+function showDetail(id) {
+  var c = allCoins.find(function(x){return x.id===id;});
+  if (!c) return;
+  var a = c._analysis;
+  var sparkPrices = c.sparkline_in_7d && c.sparkline_in_7d.price ? c.sparkline_in_7d.price : [];
+  var reasons = a.reasons.map(function(r){return '<span class="reason-tag">'+r+'</span>';}).join('');
+
+  var invest = [3,5,6].map(function(amt){
+    var units = (amt / c.current_price).toFixed(8);
+    return '<div class="invest-row"><span style="color:var(--muted)">$'+amt+'</span><span>'+units+' '+c.symbol.toUpperCase()+'</span></div>';
+  }).join('');
+
+  document.getElementById('detailContent').innerHTML =
+    '<img src="'+c.image+'" style="width:48px;height:48px;border-radius:50%;margin-top:30px;">' +
+    '<div style="margin:10px 0 4px;font-size:20px;font-weight:700;">'+c.name+' <span style="color:var(--muted);font-size:14px;">'+c.symbol.toUpperCase()+'</span></div>' +
+    '<div class="dp-price">'+fmtPrice(c.current_price)+'</div>' +
+    '<div style="font-size:13px;margin-bottom:16px;" class="'+clsChange(c.price_change_percentage_24h)+'">'+fmtPct(c.price_change_percentage_24h)+' (24h)</div>' +
+
+    '<div class="big-signal big-sig-'+a.signal+'">' +
+      '<div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Signal</div>' +
+      '<div class="big-sig-text">'+a.signal+'</div>' +
+      '<div style="font-size:13px;color:var(--muted);">'+a.confidence+'% confidence</div>' +
+    '</div>' +
+
+    '<div class="dp-section">' +
+      '<div class="dp-section-title">Indicators</div>' +
+      '<div class="ind-row"><span>RSI (14)</span><span style="color:'+(a.rsi<40?'var(--green)':a.rsi>65?'var(--red)':'var(--yellow)')+'">'+a.rsi+'</span></div>' +
+      '<div class="ind-row"><span>MACD</span><span class="'+(a.macd>0?'pos':'neg')+'">'+(a.macd>0?'+':'')+a.macd+'</span></div>' +
+      '<div class="ind-row"><span>SMA 7</span><span>'+fmtPrice(a.sma7)+'</span></div>' +
+      '<div class="ind-row"><span>SMA 25</span><span>'+fmtPrice(a.sma25)+'</span></div>' +
+      '<div class="ind-row"><span>Volatility (7d)</span><span style="color:'+(a.vol>5?'var(--red)':a.vol>3?'var(--yellow)':'var(--green)')+'">'+a.vol+'%</span></div>' +
+      '<div class="ind-row"><span>Risk Score</span><span style="color:'+(a.riskScore>66?'var(--red)':a.riskScore>33?'var(--yellow)':'var(--green)')+'">'+a.riskScore+'/100</span></div>' +
+    '</div>' +
+
+    '<div class="dp-section">' +
+      '<div class="dp-section-title">Signal reasons</div>' +
+      reasons +
+    '</div>' +
+
+    '<div class="dp-section">' +
+      '<div class="dp-section-title">Market data</div>' +
+      '<div class="dp-grid">' +
+        '<div class="dp-stat"><div class="dp-stat-label">Market Cap</div><div class="dp-stat-val">'+fmtLarge(c.market_cap)+'</div></div>' +
+        '<div class="dp-stat"><div class="dp-stat-label">24h Volume</div><div class="dp-stat-val">'+fmtLarge(c.total_volume)+'</div></div>' +
+        '<div class="dp-stat"><div class="dp-stat-label">7d Change</div><div class="dp-stat-val '+clsChange(c.price_change_percentage_7d_in_currency)+'">'+fmtPct(c.price_change_percentage_7d_in_currency)+'</div></div>' +
+        '<div class="dp-stat"><div class="dp-stat-label">ATH</div><div class="dp-stat-val">'+fmtPrice(c.ath)+'</div></div>' +
+        '<div class="dp-stat"><div class="dp-stat-label">ATL</div><div class="dp-stat-val">'+fmtPrice(c.atl)+'</div></div>' +
+        '<div class="dp-stat"><div class="dp-stat-label">Rank</div><div class="dp-stat-val">#'+c.market_cap_rank+'</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="dp-section">' +
+      '<div class="dp-section-title">Your $3–6 investment</div>' +
+      '<div class="invest-calc">'+invest+'</div>' +
+    '</div>' +
+
+    '<div style="height:20px;"></div>';
+
+  document.getElementById('detailPanel').classList.add('open');
+}
+function closeDetail() { document.getElementById('detailPanel').classList.remove('open'); }
+
+// ===== MARKET GLOBALS =====
+async function fetchGlobals() {
+  try {
+    var r = await fetch('https://api.coingecko.com/api/v3/global');
+    var d = await r.json();
+    var g = d.data;
+    document.getElementById('totalMcap').textContent = fmtLarge(g.total_market_cap.usd);
+    document.getElementById('totalMcap').className = 'mstat-val ' + clsChange(g.market_cap_change_percentage_24h_usd);
+    document.getElementById('totalVol').textContent = fmtLarge(g.total_volume.usd);
+    document.getElementById('btcDom').textContent = g.market_cap_percentage.btc.toFixed(1) + '%';
+    document.getElementById('activeCoins').textContent = g.active_cryptocurrencies.toLocaleString();
+  } catch(e) {}
+
+  try {
+    var fg = await fetch('https://api.alternative.me/fng/');
+    var fd = await fg.json();
+    var val = fd.data[0].value, cls = fd.data[0].value_classification;
+    var color = val>60?'#22c55e':val>40?'#f59e0b':'#ef4444';
+    document.getElementById('fgIndex').innerHTML = '<span style="color:'+color+'">'+val+' ('+cls+')</span>';
+  } catch(e) { document.getElementById('fgIndex').textContent = 'N/A'; }
+}
+
+// ===== MAIN FETCH (250 coins, 2 pages) =====
+async function fetchCoins() {
+  document.getElementById('tableContainer').innerHTML = '<div class="loading-screen"><div class="spinner"></div><div class="loading-text">Fetching live data for 250 coins...</div></div>';
+
+  try {
+    var pages = await Promise.all([
+      fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=7d').then(function(r){return r.json();}),
+      fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=2&sparkline=true&price_change_percentage=7d').then(function(r){return r.json();}),
+      fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=3&sparkline=true&price_change_percentage=7d').then(function(r){return r.json();})
+    ]);
+
+    allCoins = [];
+    pages.forEach(function(p){ if (Array.isArray(p)) allCoins = allCoins.concat(p); });
+
+    if (allCoins.length === 0) throw new Error('No coins');
+
+    // Run analysis on all
+    allCoins.forEach(function(c){ c._analysis = analyzeSignal(c); });
+
+    // Update BTC/ETH prices in header
+    var btc = allCoins.find(function(c){return c.id==='bitcoin';});
+    var eth = allCoins.find(function(c){return c.id==='ethereum';});
+    if (btc) {
+      document.getElementById('btcPrice').textContent = fmtPrice(btc.current_price);
+      document.getElementById('btcPrice').className = 'mstat-val ' + clsChange(btc.price_change_percentage_24h);
+    }
+    if (eth) {
+      document.getElementById('ethPrice').textContent = fmtPrice(eth.current_price);
+      document.getElementById('ethPrice').className = 'mstat-val ' + clsChange(eth.price_change_percentage_24h);
+    }
+
+    var now = new Date();
+    document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('en-IN');
+    document.getElementById('activeCoins').textContent = allCoins.length + ' loaded';
+
+    applyFilter();
+    fetchGlobals();
+
+  } catch(e) {
+    document.getElementById('tableContainer').innerHTML =
+      '<div class="loading-screen"><div class="loading-text" style="color:#ef4444;">Could not load data. CoinGecko may be rate-limiting (free tier: 30 calls/min).<br><br>Wait 60 seconds then click Refresh.<br><br>' + e.message + '</div></div>';
+  }
+}
+
+// ===== AUTO REFRESH every 60 seconds =====
+fetchCoins();
+refreshInterval = setInterval(fetchCoins, 60000);
+</script>
+</body>
+</html>
